@@ -19,6 +19,14 @@ const settings = require("./settings"); // Program settings values
 const udp = dgram.createSocket("udp4");
 const tcp = net.createServer();
 
+// Create instruments sounds dictionnary
+const sounds = new Map();
+sounds.set("ti-ta-ti", "piano");
+sounds.set("pouet", "trumpet");
+sounds.set("trulu", "flute");
+sounds.set("gzi-gzi", "violin");
+sounds.set("boum-boum", "drum");
+
 // Map to store active musicians
 const musicians = new Map();
 
@@ -29,21 +37,21 @@ udp.on("listening", () => {
 
 // Capture and process UDP messages sent by musicians
 udp.on("message", (message) => {
-  let musician = JSON.parse(message);
+  let data = JSON.parse(message);
 
   // Test if musician has already played a sound before to update last sound played date
-  if (musicians.has(musician.uuid)) {
-    musicians.get(musician.uuid).lastSound = moment().format();
-    console.log("Updated musician " + musician.uuid);
+  if (musicians.has(data.uuid)) {
+    musicians.get(data.uuid).lastSound = moment().format();
+    console.log("Updated musician " + data.uuid);
   } else {
     // Musician does not exists
-    musicians.set(musician.uuid, {
-      uuid: musician.uuid,
-      instrument: musician.instrument,
+    musicians.set(data.uuid, {
+      uuid: data.uuid,
+      instrument: sounds.get(data.sound),
       activeSince: moment().format(),
       lastUpdate: moment().format(),
     });
-    console.log("Added musician " + musician.uuid);
+    console.log("Added musician " + data.uuid);
   }
 });
 
@@ -73,7 +81,9 @@ tcp.on("connection", (socket) => {
 
   // Write active musician data
   socket.write(JSON.stringify(orchestra) + "\n");
-  socket.end;
+
+  socket.pipe(socket);
+  socket.destroy();
 });
 
 // Start

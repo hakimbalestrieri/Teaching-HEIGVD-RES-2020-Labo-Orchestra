@@ -1,4 +1,4 @@
-FROM node:4.3.1
+FROM node:16
 
 #
 # When we build the image, we copy the executable jar in the image file system. 

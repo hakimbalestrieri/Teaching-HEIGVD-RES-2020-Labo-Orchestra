@@ -111,4 +111,3 @@ DockerUtils.prototype.killRandomMusicianContainer = killRandomMusicianContainer;
 DockerUtils.prototype.dump = dump;
 
 module.exports = new DockerUtils();
-

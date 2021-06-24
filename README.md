@@ -104,15 +104,15 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 | #  | Topic |
 | --- | --- |
 |Question | How can we represent the system in an **architecture diagram**, which gives information both about the Docker containers, the communication protocols and the commands? |
-| | *Insert your diagram here...* |
+| | ![](./diagrams/general.png) |
 |Question | Who is going to **send UDP datagrams** and **when**? |
-| | *Enter your response here...* |
+| | Chaque conteneur musicien envoie des datagrammes UDP toutes les secondes. |
 |Question | Who is going to **listen for UDP datagrams** and what should happen when a datagram is received? |
-| | *Enter your response here...* |
+| | Chaque conteneur auditeur écoute les datagrammes reçus et ajoute le musicien à la map si c'est le premier datagramme reçu ou met à jour la date de dernière activité du musicien dans la map. |
 |Question | What **payload** should we put in the UDP datagrams? |
-| | *Enter your response here...* |
+| | L'uuid qui permet d'identifier le musicien et le timestamp de la dernière note jouée sont deux informations obligatoires. Ici, le son de l'instrument est aussi présent. |
 |Question | What **data structures** do we need in the UDP sender and receiver? When will we update these data structures? When will we query these data structures? |
-| | *Enter your response here...* |
+|  | Musicien : un dictionnaire implémenté avec une map permet d'associer à chaque instrument le son produit<br />Auditeur : une map qui contient les musiciens actifs identifiés avec une clé qui est l'uuid du musicien. L'information de dernière activité est notemment stockée dans la valeur. |
 
 
 ## Task 2: implement a "musician" Node.js application
@@ -120,21 +120,21 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 | #  | Topic |
 | ---  | --- |
 |Question | In a JavaScript program, if we have an object, how can we **serialize it in JSON**? |
-| | *Enter your response here...*  |
+| | `JSON.stringify()` |
 |Question | What is **npm**?  |
-| | *Enter your response here...*  |
+| | C'est le gestionnaire de packet de Node JS |
 |Question | What is the `npm install` command and what is the purpose of the `--save` flag?  |
-| | *Enter your response here...*  |
+| | Cette commande permet d'installer un package dans le projet JavaScript. L'ensemble des packages sont stockés dans le dossier `node_modules`. La configuration des packages référencés dans le projet sont disponible dans le fichier `package.json`. <br />Le flag `--save` permet de garder la dépendance localement sur l'ordinateur. |
 |Question | How can we use the `https://www.npmjs.com/` web site?  |
-| | *Enter your response here...*  |
+| | Ce site permet de rechercher des packages en fonction des besoins. |
 |Question | In JavaScript, how can we **generate a UUID** compliant with RFC4122? |
-| | *Enter your response here...*  |
+| | Nous avons utilisé le package [uuid](https://www.npmjs.com/package/uuid). Il a été installé via `npm`. |
 |Question | In Node.js, how can we execute a function on a **periodic** basis? |
-| | *Enter your response here...*  |
+|  | `setInterval(function, interval)` *function* est une fonction de callback qui est exécutée toutes les *interval* millisecondes. |
 |Question | In Node.js, how can we **emit UDP datagrams**? |
-| | *Enter your response here...*  |
+| | En utilisant la librairie standrad Node JS `dgram`. Les datagrammes sont envoyés en utilisant la méthode `socket.send()`. |
 |Question | In Node.js, how can we **access the command line arguments**? |
-| | *Enter your response here...*  |
+| | `process.argv[i]` où i est l'index de l'argument. |
 
 
 ## Task 3: package the "musician" app in a Docker image
@@ -142,17 +142,17 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 | #  | Topic |
 | ---  | --- |
 |Question | How do we **define and build our own Docker image**?|
-| | *Enter your response here...*  |
+| | Nous sommes partis d'une image Docker avec la version 16 de Node JS :<br />`FROM node:16`<br />Nous avons ensuite copier les sources dans le conteneur :<br />`COPY src /opt/app/`<br />Puis installé les dépendances nécessaires :<br />`WORKDIR /opt/app/`<br/>`RUN npm install`<br />Finalement, nous avons exécuté le script JavaScript :<br />`ENTRYPOINT ["node", "/opt/app/auditor.js"]` |
 |Question | How can we use the `ENTRYPOINT` statement in our Dockerfile?  |
-| | *Enter your response here...*  |
+|  | La commande `ENTRYPOINT` permet de lancer une commande dans le conteneur lorsque celui-ci est démarré. Nous l'avons utilisée pour lancer l'exécution du script JavaScript dans les conteneurs après installation des dépendances. |
 |Question | After building our Docker image, how do we use it to **run containers**?  |
-| | *Enter your response here...*  |
+| | `docker run -d res/musician <instrument>` <br />Les instruments suivants sont disponibles : piano, trumpet, flute, violin, drum |
 |Question | How do we get the list of all **running containers**?  |
-| | *Enter your response here...*  |
+| | `docker ps` |
 |Question | How do we **stop/kill** one running container?  |
-| | *Enter your response here...*  |
+|  | `docker kill <container>` avec l'id du conteneur à tuer obtenu via`docker ps`. |
 |Question | How can we check that our running containers are effectively sending UDP datagrams?  |
-| | *Enter your response here...*  |
+| | Pour vérifier l'envoi des datagrammes UDP, on peut utiliser `tcpdump -i docker0`. Cela affiche les packets envoyés sur l'interface `docker0` des conteneurs. |
 
 
 ## Task 4: implement an "auditor" Node.js application
@@ -160,15 +160,15 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 | #  | Topic |
 | ---  | ---  |
 |Question | With Node.js, how can we listen for UDP datagrams in a multicast group? |
-| | *Enter your response here...*  |
+|  | Il faut d'abord créer un socket udp : `const udp = dgram.createSocket("udp4");`<br />Ensuite, il faut l'ajouter dans les membres du groupe multicast UDP : `udp.addMembership(MULTICAST_ADDRESS)`<br />Les datagrammes peuvent être écoutés via : `udp.on("message", function)` |
 |Question | How can we use the `Map` built-in object introduced in ECMAScript 6 to implement a **dictionary**?  |
-| | *Enter your response here...* |
+| | Voici comment créer la map de musiciens : `const musicians = new Map();`<br />Les éléments peuvent ensuite être ajoutés dans la map en utilisant  :  `musicians.add(key, value)` |
 |Question | How can we use the `Moment.js` npm module to help us with **date manipulations** and formatting?  |
-| | *Enter your response here...* |
+| | Moment JS est une librairie de gestion de dates. Elle a été utilisée pour faciliter le traitement des dates dans nos scripts. L'utilisation la plus évoluée que nous avons faite est la soustraction de secondes au temps courant : `moment().subtract(5, 's').diff(OTHER_TIME)` |
 |Question | When and how do we **get rid of inactive players**?  |
-| | *Enter your response here...* |
+| | Les musiciens inacitifs sont supprimés de la map lorsqu'un client TCP demande se connecte et qu'il faut envoyer la liste des membres actifs. C'est à ce moment là que l'on parcourt la map et que l'on supprime les musiciens inactifs via : `musicians.delete(uuid)` |
 |Question | How do I implement a **simple TCP server** in Node.js?  |
-| | *Enter your response here...* |
+|  | Nous avons utilisé la librairie standard Node JS `net` :<br />Pour créer le serveur, il faut faire : `const tcp = net.createServer()`<br />Pour écouter sur le serveur les connexions entrantes :  `tcp.on("connection", function)`<br />Et pour démarrer le serveur : `tcp.listen(PORT, ADRESSE_IP)` |
 
 
 ## Task 5: package the "auditor" app in a Docker image
@@ -176,7 +176,7 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 | #  | Topic |
 | ---  | --- |
 |Question | How do we validate that the whole system works, once we have built our Docker image? |
-| | *Enter your response here...* |
+| | Nous avons d'abord validé les scipts en les exécutants via la commande `node auditor.js` et `node musician.js`.<br />Ensuite nous les avons déposés dans les conteneurs et avons analysé les datagrammes UDP envoyés avec tcpdump.<br />Finalement, nous avons utilisé `telnet` pour nous connecter sur le conteneur et réaliser plusieurs tests afin de nous assurer que tout fonctionnait.<br />Le script `validate.sh` a également permis de valider notre laboratoire. |
 
 
 ## Constraints

@@ -19,26 +19,25 @@ const { v4: uuidv4 } = require("uuid");
 // Create sockets
 const udp = dgram.createSocket("udp4");
 
+// Create instruments sounds dictionnary
+const map = new Map();
+map.set("piano", "ti-ta-ti");
+map.set("trumpet", "pouet");
+map.set("flute", "trulu");
+map.set("violin", "gzi-gzi");
+map.set("drum", "boum-boum");
+
 /**
  * Get the sound played by an instrument
  * @param instrument to get the sound played
  * @returns the sound played by the given instrument
  */
 function getSound(instrument) {
-  switch (instrument) {
-    case "piano":
-      return "ti-ta-ti";
-    case "trumpet":
-      return "pouet";
-    case "flute":
-      return "trulu";
-    case "violin":
-      return "gzi-gzi";
-    case "drum":
-      return "boum-boum";
-    default:
-      return "";
-  }
+  // If the instrument has not been found, terminate process
+  if (!map.has(instrument)) process.exit(1);
+
+  // Instrument exists, return it sound
+  return map.get(instrument);
 }
 
 /**

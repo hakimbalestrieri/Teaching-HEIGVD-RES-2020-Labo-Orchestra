@@ -112,7 +112,7 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 |Question | What **payload** should we put in the UDP datagrams? |
 | | L'uuid qui permet d'identifier le musicien et le timestamp de la dernière note jouée sont deux informations obligatoires. Ici, le son de l'instrument est aussi présent. |
 |Question | What **data structures** do we need in the UDP sender and receiver? When will we update these data structures? When will we query these data structures? |
-|  | Musicien : un dictionnaire implémenté avec une map permet d'associer à chaque instrument le son produit<br />Auditeur : une map qui contient les musiciens actifs identifiés avec une clé qui est l'uuid du musicien. L'information de dernière activité est notemment stockée dans la valeur. |
+|  | Musicien : un dictionnaire implémenté avec une map permet d'associer à chaque instrument le son produit<br />Auditeur : une map qui contient les musiciens actifs identifiés avec une clé qui est l'uuid du musicien. L'information de dernière activité est notemment stockée dans la valeur. Une autre map qui associe l'instrument selon le son reçu. |
 
 
 ## Task 2: implement a "musician" Node.js application
@@ -120,13 +120,13 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 | #  | Topic |
 | ---  | --- |
 |Question | In a JavaScript program, if we have an object, how can we **serialize it in JSON**? |
-| | `JSON.stringify()` |
+| | `JSON.stringify(object)` |
 |Question | What is **npm**?  |
 | | C'est le gestionnaire de packet de Node JS |
 |Question | What is the `npm install` command and what is the purpose of the `--save` flag?  |
 | | Cette commande permet d'installer un package dans le projet JavaScript. L'ensemble des packages sont stockés dans le dossier `node_modules`. La configuration des packages référencés dans le projet sont disponible dans le fichier `package.json`. <br />Le flag `--save` permet de garder la dépendance localement sur l'ordinateur. |
 |Question | How can we use the `https://www.npmjs.com/` web site?  |
-| | Ce site permet de rechercher des packages en fonction des besoins. |
+| | Ce site permet de rechercher et d'obtenir des informations sur des packages en fonction des besoins. |
 |Question | In JavaScript, how can we **generate a UUID** compliant with RFC4122? |
 | | Nous avons utilisé le package [uuid](https://www.npmjs.com/package/uuid). Il a été installé via `npm`. |
 |Question | In Node.js, how can we execute a function on a **periodic** basis? |
@@ -142,7 +142,7 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 | #  | Topic |
 | ---  | --- |
 |Question | How do we **define and build our own Docker image**?|
-| | Nous sommes partis d'une image Docker avec la version 16 de Node JS :<br />`FROM node:16`<br />Nous avons ensuite copier les sources dans le conteneur :<br />`COPY src /opt/app/`<br />Puis installé les dépendances nécessaires :<br />`WORKDIR /opt/app/`<br/>`RUN npm install`<br />Finalement, nous avons exécuté le script JavaScript :<br />`ENTRYPOINT ["node", "/opt/app/auditor.js"]` |
+| | Nous sommes partis d'une image Docker avec la version 16 de Node JS :<br />`FROM node:16`<br />Nous avons ensuite copier les sources dans le conteneur :<br />`COPY src /opt/app/`<br />Nous avons alors installé les outils nécessaires :<br />`RUN apt-get update && apt-get install -y vim tcpdump`<br />Puis installé les dépendances nécessaires :<br />`WORKDIR /opt/app/`<br/>`RUN npm install`<br />Finalement, nous avons exécuté le script JavaScript :<br />`ENTRYPOINT ["node", "/opt/app/auditor.js"]` |
 |Question | How can we use the `ENTRYPOINT` statement in our Dockerfile?  |
 |  | La commande `ENTRYPOINT` permet de lancer une commande dans le conteneur lorsque celui-ci est démarré. Nous l'avons utilisée pour lancer l'exécution du script JavaScript dans les conteneurs après installation des dépendances. |
 |Question | After building our Docker image, how do we use it to **run containers**?  |
@@ -168,7 +168,7 @@ When you connect to the TCP interface of the **Auditor**, you should receive an 
 |Question | When and how do we **get rid of inactive players**?  |
 | | Les musiciens inacitifs sont supprimés de la map lorsqu'un client TCP demande se connecte et qu'il faut envoyer la liste des membres actifs. C'est à ce moment là que l'on parcourt la map et que l'on supprime les musiciens inactifs via : `musicians.delete(uuid)` |
 |Question | How do I implement a **simple TCP server** in Node.js?  |
-|  | Nous avons utilisé la librairie standard Node JS `net` :<br />Pour créer le serveur, il faut faire : `const tcp = net.createServer()`<br />Pour écouter sur le serveur les connexions entrantes :  `tcp.on("connection", function)`<br />Et pour démarrer le serveur : `tcp.listen(PORT, ADRESSE_IP)` |
+|  | Nous avons utilisé la librairie standard Node JS `net` :<br />Pour créer le serveur, il faut faire : `const tcp = net.createServer()`<br />Pour écouter sur le serveur les connexions entrantes :  `tcp.on("connection", function)`<br />Et pour démarrer le serveur : `tcp.listen(PORT, ADRESSE_IP)`<br />Il ne faut pas oublier de terminer la connexion dans tcp.on("connection", ...) avec `socket.destroy()` |
 
 
 ## Task 5: package the "auditor" app in a Docker image
